@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carnet de terrain</title>
+<meta name="theme-color" content="#1f2a2e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#eceee9;--card:#fff;--ink:#1c2326;--mute:#5d6a6e;--line:#d3d9d4;--head:#1f2a2e;--acc:#1d6f7a;--warn:#b4531f;--soft:#e2eceb}
+@media(prefers-color-scheme:dark){:root{--bg:#121819;--card:#1c2528;--ink:#e6ebe8;--mute:#93a0a3;--line:#33403f;--head:#0d1214;--acc:#4fb3bf;--warn:#e08a55;--soft:#22343a}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--head);color:#fff;padding:16px 16px 14px;padding-top:calc(16px + env(safe-area-inset-top,0px));position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;border-bottom:6px solid;border-image:linear-gradient(90deg,#c9a86a 0 25%,#a9795a 25% 50%,#7d8f6b 50% 75%,#5b7c8a 75%) 1}
+header .t{flex:1;min-width:0}
+header h1{font-size:1.25rem;margin:0;font-weight:800;letter-spacing:.2px}
+header p{margin:0;font-size:.82rem;opacity:.7}
+header button{background:rgba(255,255,255,.14);padding:9px 14px;border-radius:10px}
+main{max-width:640px;margin:0 auto;padding:14px 14px 120px}
+button{font:inherit;border:0;border-radius:12px;padding:13px 16px;background:var(--acc);color:#fff;font-weight:700;cursor:pointer}
+button:active{transform:scale(.98)}
+button.ghost{background:var(--soft);color:var(--acc)}
+button.danger{background:transparent;color:var(--warn);border:1.5px solid var(--warn)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.search{position:relative;margin-bottom:10px}
+.search input{padding:13px 14px;border-radius:14px;background:var(--card)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
+.chip{flex:none;padding:7px 14px;border-radius:20px;background:var(--card);color:var(--ink);border:1.5px solid var(--line);font-weight:600;font-size:.88rem}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.item{display:flex;gap:12px;align-items:center;width:100%;text-align:left;color:var(--ink);background:var(--card);border:1px solid var(--line);border-left:6px solid var(--c,var(--line));border-radius:14px;padding:10px;margin-bottom:10px;font-weight:400}
+.item img,.item .ph{width:68px;height:68px;border-radius:10px;object-fit:cover;background:var(--soft);flex:none}
+.item b{display:block;font-size:1.02rem}
+.item small{color:var(--mute);display:block}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;color:#fff;background:var(--c,var(--mute));border-radius:6px;padding:1px 8px;margin-top:3px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+fieldset{border:0;padding:0;margin:0}
+legend{font-weight:800;font-size:1.05rem;margin-bottom:4px;padding:0}
+label{display:block;font-size:.85rem;font-weight:600;color:var(--mute);margin:12px 0 5px}
+input,select,textarea{width:100%;font:inherit;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.bar>*{flex:1;min-width:130px}
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.photos div{position:relative;aspect-ratio:1}
+.photos img{width:100%;height:100%;object-fit:cover;border-radius:10px}
+.photos button{position:absolute;top:4px;right:4px;padding:1px 9px;border-radius:20px;background:rgba(0,0,0,.7);font-size:1.15rem;line-height:1.35}
+.empty{text-align:center;color:var(--mute);padding:48px 10px}
+.empty svg{width:84px;height:84px;margin-bottom:8px}
+.msg{color:var(--mute);font-size:.85rem;margin-top:8px}
+.dock{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;z-index:6}
+.dock>*{flex:1}
+.dock .fab{flex:none;width:100%;font-size:1.05rem;padding:15px}
+#toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--head);color:#fff;padding:11px 20px;border-radius:24px;z-index:9;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:10;display:flex;align-items:center;justify-content:center}
+#lb img{max-width:100%;max-height:100%}
+dialog{border:0;border-radius:18px;padding:20px;width:min(92vw,380px);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog h2{margin:0 0 4px;font-size:1.1rem}
+dialog p{margin:0 0 12px;color:var(--mute);font-size:.9rem}
+dialog button{width:100%;margin-top:8px}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="t"><h1 id="title">Carnet de terrain</h1><p id="sub"></p></div>
+  <button id="exp">Exporter</button>
+</header>
+
+<main>
+  <section id="list" hidden>
+    <div class="search"><input id="q" type="search" placeholder="Rechercher une station, une roche…" aria-label="Rechercher"></div>
+    <div class="chips" id="chips"></div>
+    <div id="items"></div>
+  </section>
+
+  <form id="form" hidden onsubmit="return false">
+    <div class="card"><fieldset>
+      <legend>Station</legend>
+      <label for="site">Nom du site / n° de station *</label><input id="site" required>
+      <div class="row">
+        <div><label for="geo">Géologue</label><input id="geo"></div>
+        <div><label for="date">Date</label><input id="date" type="date"></div>
+      </div>
+      <label for="loc">Localité / région</label><input id="loc">
+      <div class="row">
+        <div><label for="lat">Latitude</label><input id="lat" inputmode="decimal"></div>
+        <div><label for="lon">Longitude</label><input id="lon" inputmode="decimal"></div>
+      </div>
+      <div class="row">
+        <div><label for="alt">Altitude (m)</label><input id="alt" inputmode="decimal"></div>
+        <div><label for="prec">Précision GPS (m)</label><input id="prec" inputmode="decimal"></div>
+      </div>
+      <div class="bar"><button type="button" class="ghost" id="gps">Prendre ma position GPS</button></div>
+      <div class="msg" id="gpsmsg"></div>
+    </fieldset></div>
+
+    <div class="card"><fieldset>
+      <legend>Roche</legend>
+      <label for="fam">Famille</label>
+      <select id="fam"><option value="">—</option><option>Magmatique</option><option>Sédimentaire</option><option>Métamorphique</option><option>Sol / altérite</option><option>Autre</option></select>
+      <label for="roche">Nom de la roche</label><input id="roche" placeholder="granite, schiste, grès…">
+      <div class="row">
+        <div><label for="couleur">Couleur</label><input id="couleur"></div>
+        <div><label for="grain">Taille des grains</label><input id="grain"></div>
+      </div>
+      <label for="mineraux">Minéraux observés</label><input id="mineraux" placeholder="quartz, feldspath, mica…">
+      <label for="alter">Altération</label>
+      <select id="alter"><option value="">—</option><option>Faible</option><option>Moyenne</option><option>Forte</option></select>
+    </fieldset></div>
+
+    <div class="card"><fieldset>
+      <legend>Structures</legend>
+      <div class="row">
+        <div><label for="dir">Direction (°)</label><input id="dir" inputmode="decimal"></div>
+        <div><label for="pend">Pendage (°)</label><input id="pend" inputmode="decimal"></div>
+      </div>
+      <label for="struct">Failles, plis, filons, foliation…</label><textarea id="struct"></textarea>
+    </fieldset></div>
+
+    <div class="card"><fieldset>
+      <legend>Description</legend>
+      <label for="desc">Affleurement</label><textarea id="desc"></textarea>
+      <label for="rem">Échantillons prélevés, remarques</label><textarea id="rem"></textarea>
+    </fieldset></div>
+
+    <div class="card"><fieldset>
+      <legend>Photos</legend>
+      <div class="bar">
+        <button type="button" id="cam">Prendre une photo</button>
+        <button type="button" class="ghost" id="gal">Galerie</button>
+      </div>
+      <input type="file" id="fcam" accept="image/*" capture="environment" hidden>
+      <input type="file" id="fgal" accept="image/*" multiple hidden>
+      <div class="photos" id="photos"></div>
+    </fieldset></div>
+    <button type="button" class="danger" id="del" hidden style="width:100%">Supprimer cette fiche</button>
+  </form>
+</main>
+
+<div class="dock" id="dockList"><button class="fab" id="add">+ Nouvelle fiche</button></div>
+<div class="dock" id="dockForm" hidden><button class="ghost" id="back">Annuler</button><button id="save">Enregistrer</button></div>
+<div id="lb" hidden><img alt="Photo agrandie"></div>
+<div id="toast" hidden></div>
+
+<dialog id="dlg">
+  <h2>Exporter les fiches</h2>
+  <p>Choisissez le format du fichier.</p>
+  <button id="xcsv">Tableau CSV (sans photos)</button>
+  <button id="xjson" class="ghost">Sauvegarde complète JSON (avec photos)</button>
+  <button id="xno" class="ghost">Fermer</button>
+</dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+const F=['site','geo','date','loc','lat','lon','alt','prec','fam','roche','couleur','grain','mineraux','alter','dir','pend','struct','desc','rem'];
+const COL={'Magmatique':'#b4531f','Sédimentaire':'#b8913a','Métamorphique':'#6a5a8c','Sol / altérite':'#6b8a5a','Autre':'#5d6a6e'};
+let db,cur=null,filt='',txt='';
+
+function open(){return new Promise((ok,ko)=>{const r=indexedDB.open('carnet-terrain',1);
+  r.onupgradeneeded=()=>r.result.createObjectStore('fiches',{keyPath:'id'});
+  r.onsuccess=()=>{db=r.result;ok()};r.onerror=()=>ko(r.error)})}
+const tx=(m,f)=>new Promise((ok,ko)=>{const t=db.transaction('fiches',m),s=t.objectStore('fiches'),q=f(s);
+  t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>ko(t.error)});
+const all=()=>tx('readonly',s=>s.getAll());
+const put=o=>tx('readwrite',s=>s.put(o));
+const rm=id=>tx('readwrite',s=>s.delete(id));
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2200)}
+function view(form){$('#list').hidden=form;$('#form').hidden=!form;$('#dockList').hidden=form;$('#dockForm').hidden=!form;$('#exp').hidden=form;scrollTo(0,0)}
+
+async function showList(){
+  cur=null;view(false);$('#title').textContent='Carnet de terrain';
+  const A=(await all()).sort((a,b)=>b.maj-a.maj);
+  $('#sub').textContent=A.length?A.length+' fiche'+(A.length>1?'s':'')+' · '+A.reduce((n,f)=>n+(f.photos||[]).length,0)+' photo(s)':'Prêt pour le terrain';
+  const fams=['Tout',...Object.keys(COL).filter(k=>A.some(f=>f.fam===k))];
+  $('#chips').innerHTML='';
+  fams.forEach(k=>{const b=document.createElement('button');b.className='chip'+((filt||'Tout')===k?' on':'');b.textContent=k;
+    b.onclick=()=>{filt=k==='Tout'?'':k;showList()};$('#chips').appendChild(b)});
+  $('#chips').hidden=A.length<2;$('.search').hidden=!A.length;
+  const L=A.filter(f=>(!filt||f.fam===filt)&&(!txt||F.some(k=>(f[k]||'').toLowerCase().includes(txt))));
+  const box=$('#items');box.innerHTML='';
+  if(!A.length){box.innerHTML='<div class="empty"><svg viewBox="0 0 96 96" aria-hidden="true"><rect x="8" y="14" width="80" height="16" rx="4" fill="#c9a86a"/><rect x="8" y="34" width="80" height="16" rx="4" fill="#a9795a"/><rect x="8" y="54" width="80" height="16" rx="4" fill="#7d8f6b"/><rect x="8" y="74" width="80" height="12" rx="4" fill="#5b7c8a"/></svg><br><b>Aucune fiche pour l\'instant</b><br>Touchez « + Nouvelle fiche » pour noter votre première station.</div>';return}
+  if(!L.length){box.innerHTML='<div class="empty">Aucun résultat.</div>';return}
+  L.forEach(f=>{const b=document.createElement('button');b.className='item';b.style.setProperty('--c',COL[f.fam]||'var(--line)');
+    b.innerHTML=(f.photos&&f.photos[0]?`<img alt="" src="${f.photos[0]}">`:'<div class="ph"></div>')+'<span><b></b><small></small></span>';
+    b.querySelector('b').textContent=f.site||'Sans nom';
+    b.querySelector('small').textContent=[f.roche,f.loc,f.date].filter(Boolean).join(' · ')+((f.photos||[]).length?' · '+f.photos.length+' photo(s)':'');
+    if(f.fam){const t=document.createElement('span');t.className='tag';t.textContent=f.fam;b.querySelector('span').appendChild(t)}
+    b.onclick=()=>edit(f);box.appendChild(b)})
+}
+$('#q').oninput=e=>{txt=e.target.value.trim().toLowerCase();showList()};
+
+function edit(f){
+  cur=f?{...f,photos:[...(f.photos||[])]}:{id:Date.now()+'',photos:[]};
+  F.forEach(k=>$('#'+k).value=cur[k]||'');
+  if(!f)$('#date').value=new Date().toISOString().slice(0,10);
+  view(true);$('#del').hidden=!f;$('#gpsmsg').textContent='';
+  $('#title').textContent=f?'Modifier la fiche':'Nouvelle fiche';drawPhotos()
+}
+function drawPhotos(){
+  const p=$('#photos');p.innerHTML='';
+  cur.photos.forEach((src,i)=>{const d=document.createElement('div');
+    d.innerHTML=`<img alt="Photo ${i+1}" src="${src}"><button type="button" aria-label="Retirer la photo">×</button>`;
+    d.querySelector('img').onclick=()=>{$('#lb img').src=src;$('#lb').hidden=false};
+    d.querySelector('button').onclick=()=>{cur.photos.splice(i,1);drawPhotos()};p.appendChild(d)})
+}
+$('#lb').onclick=()=>$('#lb').hidden=true;
+function shrink(file){return new Promise(ok=>{const r=new FileReader();r.onload=()=>{const i=new Image();
+  i.onload=()=>{const k=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement('canvas');
+    c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.75))};
+  i.src=r.result};r.readAsDataURL(file)})}
+async function addFiles(e){for(const f of e.target.files)cur.photos.push(await shrink(f));e.target.value='';drawPhotos();toast('Photo ajoutée')}
+$('#cam').onclick=()=>$('#fcam').click();$('#gal').onclick=()=>$('#fgal').click();
+$('#fcam').onchange=addFiles;$('#fgal').onchange=addFiles;
+
+$('#gps').onclick=()=>{
+  const m=$('#gpsmsg');
+  if(!navigator.geolocation){m.textContent='Le GPS n\'est pas disponible sur cet appareil.';return}
+  m.textContent='Recherche de la position…';
+  navigator.geolocation.getCurrentPosition(p=>{
+    $('#lat').value=p.coords.latitude.toFixed(6);$('#lon').value=p.coords.longitude.toFixed(6);
+    if(p.coords.altitude!=null)$('#alt').value=Math.round(p.coords.altitude);
+    $('#prec').value=Math.round(p.coords.accuracy);m.textContent='Position enregistrée.'},
+  ()=>m.textContent='Position impossible : autorisez la localisation pour ce site.',{enableHighAccuracy:true,timeout:20000})
+};
+
+$('#save').onclick=async()=>{
+  if(!$('#site').value.trim()){$('#site').focus();$('#site').reportValidity();return}
+  F.forEach(k=>cur[k]=$('#'+k).value.trim());cur.maj=Date.now();
+  await put(cur);await showList();toast('Fiche enregistrée')
+};
+$('#del').onclick=async()=>{if(confirm('Supprimer cette fiche et ses photos ?')){await rm(cur.id);await showList();toast('Fiche supprimée')}};
+$('#back').onclick=showList;$('#add').onclick=()=>edit(null);
+
+function save(name,type,text){const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+$('#exp').onclick=async()=>{if(!(await all()).length){toast('Aucune fiche à exporter');return}$('#dlg').showModal()};
+$('#xno').onclick=()=>$('#dlg').close();
+$('#xcsv').onclick=async()=>{const L=await all(),q=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
+  save(`fiches-terrain-${new Date().toISOString().slice(0,10)}.csv`,'text/csv;charset=utf-8','\ufeff'+[F.join(';')].concat(L.map(f=>F.map(k=>q(f[k])).join(';'))).join('\n'));$('#dlg').close()};
+$('#xjson').onclick=async()=>{save(`sauvegarde-terrain-${new Date().toISOString().slice(0,10)}.json`,'application/json',JSON.stringify(await all()));$('#dlg').close()};
+
+open().then(showList);
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
