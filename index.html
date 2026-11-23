@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Carnet de terrain</title>
-<meta name="theme-color" content="#1f2a2e">
+<meta name="theme-color" content="#2c2d31">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{--bg:#eceee9;--card:#fff;--ink:#1c2326;--mute:#5d6a6e;--line:#d3d9d4;--head:#1f2a2e;--acc:#1d6f7a;--warn:#b4531f;--soft:#e2eceb}
@@ -61,6 +61,19 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 dialog h2{margin:0 0 4px;font-size:1.1rem}
 dialog p{margin:0 0 12px;color:var(--mute);font-size:.9rem}
 dialog button{width:100%;margin-top:8px}
+header{background:linear-gradient(135deg,#1f2a2e 30%,#25444c)}
+.card{box-shadow:0 2px 8px rgba(20,30,30,.06)}
+legend{display:flex;align-items:center;gap:10px}
+legend::before{content:"";width:6px;height:20px;border-radius:3px;background:linear-gradient(#c9a86a 0 33%,#7d8f6b 33% 66%,#5b7c8a 66%)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.stats div{background:var(--head);color:#fff;border-radius:16px;padding:12px 6px;text-align:center;border-bottom:5px solid var(--k)}
+.stats div:nth-child(1){--k:#c9a86a}.stats div:nth-child(2){--k:#a9795a}.stats div:nth-child(3){--k:#7d8f6b}
+.stats b{display:block;font-size:1.7rem;line-height:1.1}
+.stats span{font-size:.78rem;opacity:.75}
+.install{display:flex;align-items:center;gap:12px;background:var(--soft);border-color:var(--acc)}
+.install div{flex:1}.install b{display:block}.install small{color:var(--mute)}
+.install button{flex:none}
+.item{box-shadow:0 2px 8px rgba(20,30,30,.05)}
 [hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -73,6 +86,8 @@ dialog button{width:100%;margin-top:8px}
 
 <main>
   <section id="list" hidden>
+    <div class="card install" id="inst" hidden><div><b>Installer l'application</b><small>Comme une vraie application, même sans réseau.</small></div><button id="instBtn">Installer</button></div>
+    <div class="stats" id="stats"></div>
     <div class="search"><input id="q" type="search" placeholder="Rechercher une station, une roche…" aria-label="Rechercher"></div>
     <div class="chips" id="chips"></div>
     <div id="items"></div>
@@ -176,6 +191,9 @@ async function showList(){
   cur=null;view(false);$('#title').textContent='Carnet de terrain';
   const A=(await all()).sort((a,b)=>b.maj-a.maj);
   $('#sub').textContent=A.length?A.length+' fiche'+(A.length>1?'s':'')+' · '+A.reduce((n,f)=>n+(f.photos||[]).length,0)+' photo(s)':'Prêt pour le terrain';
+  const nph=A.reduce((n,f)=>n+(f.photos||[]).length,0),ngps=A.filter(f=>f.lat&&f.lon).length;
+  $('#stats').innerHTML=[[A.length,'Fiches'],[nph,'Photos'],[ngps,'Avec GPS']].map(([n,l])=>`<div><b>${n}</b><span>${l}</span></div>`).join('');
+  $('#stats').hidden=!A.length;
   const fams=['Tout',...Object.keys(COL).filter(k=>A.some(f=>f.fam===k))];
   $('#chips').innerHTML='';
   fams.forEach(k=>{const b=document.createElement('button');b.className='chip'+((filt||'Tout')===k?' on':'');b.textContent=k;
@@ -244,6 +262,10 @@ $('#xcsv').onclick=async()=>{const L=await all(),q=v=>'"'+String(v||'').replace(
   save(`fiches-terrain-${new Date().toISOString().slice(0,10)}.csv`,'text/csv;charset=utf-8','\ufeff'+[F.join(';')].concat(L.map(f=>F.map(k=>q(f[k])).join(';'))).join('\n'));$('#dlg').close()};
 $('#xjson').onclick=async()=>{save(`sauvegarde-terrain-${new Date().toISOString().slice(0,10)}.json`,'application/json',JSON.stringify(await all()));$('#dlg').close()};
 
+let dp;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;if(!matchMedia('(display-mode: standalone)').matches)$('#inst').hidden=false});
+$('#instBtn').onclick=async()=>{if(!dp)return;dp.prompt();await dp.userChoice;dp=null;$('#inst').hidden=true};
+addEventListener('appinstalled',()=>{$('#inst').hidden=true;toast('Application installée')});
 open().then(showList);
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
